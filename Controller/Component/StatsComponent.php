@@ -119,6 +119,23 @@ class StatsComponent extends Component
     return $return;
   }
   
+  public function buildPie( $results)
+  {
+    $return = array();
+    $model = key( $results [0]);
+    $key = key( current( $results [0]));
+
+    foreach( $results as $result)
+    {
+      $return [] = array(
+          $result [$model][$key],
+          (int)$result [0]['number']
+      );
+    }
+    
+    return $return;
+  }
+  
   public function setDateQueries()
   {
     if( !isset( $this->Request->query ['dates']))
@@ -297,7 +314,7 @@ class StatsComponent extends Component
     return $this->getIntervalMonth();
   }
   
-  public function getLeyendDate( $format = 'm-d')
+  public function getLeyendDate( $format = 'd-m')
   {
     return $this->getIntervalDate( $format);
   }
@@ -405,6 +422,11 @@ class StatsComponent extends Component
  */
   public function queryType()
   {
+    if( !empty( $this->queryType))
+    {
+      return $this->queryType;
+    }
+    
     if( isset( $this->Request->query [$this->typeQuery]) 
         && array_key_exists( $this->Request->query [$this->typeQuery], $this->queryTypes))
     {
@@ -439,6 +461,11 @@ class StatsComponent extends Component
     }
     
     return $return;
+  }
+  
+  public function setQueryType( $type)
+  {
+    $this->queryType = $type;
   }
   
   public function fields( $pair, $fields = array())
@@ -502,6 +529,24 @@ class StatsComponent extends Component
     }
     
     return $total;
+  }
+  
+  public function setPercentage( $results)
+  {
+    $total = 0;
+    
+    foreach( $results as $key => $result)
+    {
+      $total += $result [1];
+    }
+    
+    foreach( $results as $key => $result)
+    {
+      $percent = !empty( $total) ? round( ($result [1] * 100) / $total) : '0';
+      $results [$key][0] .= ' ('. $percent . '%)';
+    }
+    
+    return $results;
   }
   
   
