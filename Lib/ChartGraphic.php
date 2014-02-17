@@ -136,23 +136,10 @@ class ChartGraphic
       $this->options ['series'][] = $data;
     }
     
-    arsort( $data ['data']);
-
-    if( $ref)
-    {
-      $table = isset( $data ['table']) ? $data ['table'] : $data ['data'];
-      
-      if( !isset( $this->options ['tables'][$ref]))
-      {
-        $key = $ref;
-      }
-      else
-      {
-        $key = $ref.'2';
-      }
-      
-      $this->options ['tables'][$key] = $table;
-    }
+    $this->options ['tables'][] = array(
+        'name' => $data ['name'],
+        'data' => $data ['data']
+    );
   }
 
 }

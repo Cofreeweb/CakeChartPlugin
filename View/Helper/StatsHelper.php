@@ -85,22 +85,57 @@ class StatsHelper extends AppHelper
     {
       $dates = $this->Request->query ['dates'];
     }
-    
+  
     list( $from, $to) = explode( ' - ', $dates);
-    
+  
     list( $day, $month, $year) = explode( '/', $from);
     $this->fromQuery = "$from";
-    
+  
     list( $day, $month, $year) = explode( '/', $to);
     $this->toQuery = "$to"; 
-    
+  
   }
   
-  
- public function dateKey( $type, $key = 1)
- {
-   return $this->$type.$key;
- }
+
+  public function navDates()
+  {
+    $out = array();
+    
+    $array = array(
+        'days' => __d( 'chart', "Por días"),
+        'dayofweek' => __d( 'chart', "Por días de la semana"),
+        'month' => __d( 'chart', "Por meses"),
+        'year' => __d( 'chart', "Por años"),
+    );
+
+    $url = Router::parse( $this->request->here);
+    // Quita el pass y lo pone bien
+    $pass = $url ['pass'];
+    unset( $url ['pass']);
+    $url = array_merge( $url, $pass);
+    
+    // Quita el named y lo pone bien
+    $named = $url ['named'];
+    unset( $url ['named']);
+    $url = array_merge( $url, $named);
+    
+    $query = $this->request->query;
+    
+    foreach( $array as $key => $title)
+    {
+      $_url = $url;
+      $query ['query_type'] = $key;
+      $_url ['?'] = $query;
+      $out [] = $this->Html->link( $title, $_url);
+    }
+    
+    return implode( " | \n", $out);
+  }
+
+  public function dateKey( $type, $key = 1)
+  {
+    return $this->$type.$key;
+  }
   
 /**
  * Devuelve el formulario de opciones para mostrar los gráficos

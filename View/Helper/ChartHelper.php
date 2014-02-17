@@ -30,7 +30,12 @@ class ChartHelper extends AppHelper
 
     return true;
   }
-
+  
+  public function out( $data)
+  {
+    return implode( "\n", $data);
+  }
+  
   private function _getCharts() 
   {
     static $read = false;
@@ -67,9 +72,8 @@ class ChartHelper extends AppHelper
  * @param array $header Array con los textos de cabecera
  * @param integer $options ['max_rows'] El número máximo de filas a devolver
  * @return HTML
- * @since Shokesu 0.2
  */
-  public function table( $name, $namedata, $label, $label_values, $options = array())
+  public function table( $name, $options = array())
   {
     $_options = array(
         'max_rows' => 10
@@ -82,80 +86,50 @@ class ChartHelper extends AppHelper
       return;
     }
     
-    $data = $this->charts [$name]->options ['tables'][$namedata];
-
-    if( isset( $this->request->query ['compare']))
-    {
-      $data2 = $this->charts [$name]->options ['tables'][$namedata .'2'];
-    } 
+    $data = $this->charts [$name]->options ['tables'];
        
-    $out = $ul = array();
+    $out = $tr = $tbody = array();
     $odd = false;
     $i = 1;
     
-    $ul [] = $this->Html->tag( 'th', $label);
+    $tr = array( '<th></th>');
     
-    if( isset( $this->request->query ['compare']))
+    foreach( $data as $values)
     {
-      $date_start_1 = date( 'd-m-Y', strtotime( $this->Stats->getDateStart( 1)));
-      $date_end_1 = date( 'd-m-Y', strtotime( $this->Stats->getDateEnd( 1)));
-      $date_start_2 = date( 'd-m-Y', strtotime( $this->Stats->getDateStart( 2)));
-      $date_end_2 = date( 'd-m-Y', strtotime( $this->Stats->getDateEnd( 2)));
-      
-      $ul [] = $this->Html->tag( 'th', __( "Período 1"), array(
-          'title' => __( "%s del %s al %s", array(
-              $label_values,
-              $date_start_1,
-              $date_end_1
-          )),
-          'class' => 'poshytip'
-      ));
-      $ul [] = $this->Html->tag( 'th', __( "Período 2"), array(
-          'title' => __( "%s del %s al %s", array(
-              $label_values,
-              $date_start_2,
-              $date_end_2
-          )),
-          'class' => 'poshytip'
-      ));
-    }
-    else
-    {
-      $ul [] = $this->Html->tag( 'th', $label_values);
+      $tr [] = '<th>'. $values ['name'] .'</th>';
     }
     
-    $out [] = $this->Html->tag( 'thead', $this->Html->tag( 'tr', $this->out( $ul), array(
-        'class' => 'tr-header'
-    )));
+    $out [] = $this->Html->tag( 'thead', $this->Html->tag( 'tr', $this->out( $tr)));
+    $tr = array();
     
-    $ul = $tbody = array();
+    $total = count( $data [0]['data']);
     
-    foreach( $data as $key => $value)
-    {
-      $ul [] = $this->Html->tag( 'td', $key);
-      $ul [] = $this->Html->tag( 'td', $value);
+    for( $i= 0; $i < $total ; $i++) 
+    { 
+      $tr [] = '<td>'. $this->charts [$name]->options ['categories']['x'][$i] .'</td>';
       
-      if( isset( $this->request->query ['compare']))
+      foreach( $data as $values)
       {
-        $ul [] = $this->Html->tag( 'td', $data2 [$key]);
+        $value = isset( $values ['data'][$i]) ? $values ['data'][$i] : '0';
+        $tr [] = '<td>'. $value .'</td>';
       }
       
-      
-      $tbody [] = $this->Html->tag( 'tr', $this->out( $ul), array(
+      $tbody [] = $this->Html->tag( 'tr', $this->out( $tr), array(
           'class' => $odd ? 'odd' : false
       ));
-      $ul = array();
+      $tr = array();
       $odd = !$odd;
-      
-      $i++;
-      
-      if( $i > $options ['max_rows'])
-      {
-        break;
-      }
     }
     
+    
+    foreach( $data as $values)
+    {
+      $tr [] = '<td>'. $values ['name'] .'</td>';
+    }
+    
+    
     $out [] = $this->Html->tag( 'tbody', $this->out( $tbody));
+
     return $this->Html->tag( 'table', $this->out( $out), array(
         'class' => 'table'
     ));

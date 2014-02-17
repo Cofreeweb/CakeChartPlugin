@@ -65,6 +65,9 @@ class StatsComponent extends Component
       'month' => array(
           'YEAR',
           'MONTH'
+      ),
+      'year' => array(
+          'YEAR',
       )
   );
   
@@ -83,6 +86,7 @@ class StatsComponent extends Component
     $this->Controller = $controller;
     $this->Request = $controller->request;
     $this->setDateQueries();
+    $this->setQueryTypeFromUrl();
   }
   
   
@@ -119,7 +123,7 @@ class StatsComponent extends Component
     return $return;
   }
   
-  public function buildPie( $results)
+  public function buildPie( $results, $labels = array())
   {
     $return = array();
     $model = key( $results [0]);
@@ -127,8 +131,17 @@ class StatsComponent extends Component
 
     foreach( $results as $result)
     {
+      if( isset( $labels [$result [$model][$key]]))
+      {
+        $label = $labels [$result [$model][$key]];
+      }
+      else
+      {
+        $label = $result [$model][$key];
+      }
+      
       $return [] = array(
-          $result [$model][$key],
+          $label,
           (int)$result [0]['number']
       );
     }
@@ -155,6 +168,19 @@ class StatsComponent extends Component
     list( $day, $month, $year) = explode( '/', $to);
     $this->toQuery = "$year-$month-$day"; 
     
+  }
+  
+/**
+ * Setea el tipo de query ( día, mes...) a partir del query pasado en la url 'query_type'
+ *
+ * @return void
+ */
+  public function setQueryTypeFromUrl()
+  {
+    if( isset( $this->Controller->request->query ['query_type']) && array_key_exists( $this->Controller->request->query ['query_type'], $this->queryTypes))
+    {
+      $this->setQueryType( $this->Controller->request->query ['query_type']); 
+    }
   }
   
   public function setRequestTimeKey( $key)
@@ -246,6 +272,13 @@ class StatsComponent extends Component
     $dates = $this->getIntervalMonth();
     return $result;
   }
+  
+  private function __setDatesYear( $result)
+  {
+    $dates = $this->getIntervalYear();
+    return $result;
+  }
+  
 
 /**
  * Coloca los valores a cero ahí donde no han nada en $result
@@ -308,13 +341,17 @@ class StatsComponent extends Component
     return array( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23);
   }
   
+  public function getLeyendYear()
+  {
+    return $this->getIntervalYear();
+  }
   
   public function getLeyendMonth()
   {
     return $this->getIntervalMonth();
   }
   
-  public function getLeyendDate( $format = 'd-m')
+  public function getLeyendDate( $format = 'd/m')
   {
     return $this->getIntervalDate( $format);
   }
@@ -335,7 +372,7 @@ class StatsComponent extends Component
       $dates [] = $dt->format( $format);
     }
     
-    $dates [] = array( date( $format, strtotime( $this->dateEnd())));
+    $dates [] = date( $format, strtotime( $this->dateEnd()));
     return $dates;
   }
   
@@ -345,20 +382,39 @@ class StatsComponent extends Component
     $time2  = strtotime( $this->dateEnd()); 
     $my     = date('mY', $time2); 
 
-    $months = array(date('m', $time1)); 
+    $months = array(date('m/Y', $time1)); 
 
     while($time1 < $time2) 
     { 
       $time1 = strtotime(date('Y-m-d', $time1).' +1 month'); 
       if(date('mY', $time1) != $my && ($time1 < $time2)) 
-         $months[] = date('m', $time1); 
+         $months[] = date('m/Y', $time1); 
     } 
 
-     $months[] = date('m', $time2); 
-
+     $months[] = date('m/Y', $time2); 
      return $months;
   }
   
+  public function getIntervalYear()
+  {
+    $format = 'Y';
+    
+    $period = new DatePeriod( 
+      new DateTime( $this->dateStart()), 
+      new DateInterval( 'P1D'), 
+      new DateTime( $this->dateEnd()), DatePeriod::EXCLUDE_START_DATE
+    );
+    
+    $dates = array( date( $format, strtotime( $this->dateStart())));
+    
+    foreach( $period as $dt) 
+    {
+      $dates [] = $dt->format( $format);
+    }
+    
+    $dates [] = date( $format, strtotime( $this->dateEnd()));
+    return array_unique( $dates);
+  }
   
 /**
  * Devuelve la fecha de inicio solicitada en GET
