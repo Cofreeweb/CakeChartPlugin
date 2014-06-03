@@ -126,6 +126,12 @@ class StatsComponent extends Component
   public function buildPie( $results, $labels = array())
   {
     $return = array();
+    
+    if( empty( $results))
+    {
+      return $return;
+    }
+    
     $model = key( $results [0]);
     $key = key( current( $results [0]));
 
@@ -330,7 +336,7 @@ class StatsComponent extends Component
     
     foreach( $dates as $date)
     {
-      $return [] = strftime( "%a", strtotime( $date)); 
+      $return [] = utf8_encode( strftime( "%a", strtotime( $date))); 
     }
 
     return $return;
