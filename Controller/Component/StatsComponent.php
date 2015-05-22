@@ -81,7 +81,7 @@ class StatsComponent extends Component
   
   
   
-  public function initialize( &$controller)
+  public function initialize( Controller $controller)
   {
     $this->Controller = $controller;
     $this->Request = $controller->request;
@@ -587,7 +587,12 @@ class StatsComponent extends Component
     foreach( $data as $record)
     {
       $record = current( $record);
-      $total += $record [$field];
+
+      if( isset( $record [$field]) && is_numeric( $record [$field]))
+      {
+        $total += $record [$field];
+      }
+      
     }
     
     return $total;
